@@ -125,8 +125,16 @@ public class TicTacToe {
 		
         return false;
     }
+    
+    public char getMakr(int row, int col) {
+    	return board[row][col];
+    }
+    
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+		TicTacToe game = new TicTacToe();
+		game.printBoard();
+		game.placeMark(0, 0);
+		game.printBoard();
 
 	}
 

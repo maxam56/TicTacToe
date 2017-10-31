@@ -14,7 +14,10 @@ public class Server {
 		private PrintWriter clientWriter;
 		private BufferedReader clientReader;
 		private final Server server;
+		private TicTacToe game;
+		
 		public ServWorker(final Socket client, final Server server) {
+			game = new TicTacToe();
 			this.client = client;
 			this.server = server;
 			try {
@@ -25,13 +28,60 @@ public class Server {
 				e.printStackTrace();
 			}
 		}
+		
+		public void run() {
+			//Print empty board to prompt clients first move
+			clientWriter.println("---|---|---");
+			while (true) {
+				try {
+					
+					//Wait for first move from client
+					if (fillBoard(clientReader.readLine())) {
+						//successful line read
+					} else {
+						clientWriter.println("Invalid move submission");
+						continue;
+					}
+					
+					//Make own move
+					
+				} catch (IOException e) {
+					
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		private boolean fillBoard(String move) {
+			if (move.length() != 11) return false;
+			int row, col;
+			int count = 0;
+			char mark;
+			for (int i = 0; i < move.length(); i++) {
+				if (count > 1) {
+					clientWriter.println("Too many moves!");
+					return false;
+				}
+				row = i/3;
+				col = i%3;
+				if (move.charAt(i) == '+' || move.charAt(i) == 'o') {
+					mark = game.getMakr(row, col);
+					if (Character.isLetter(move.charAt(i))) {
+						if (!(move.charAt(i) == game.getMakr(row, col))) {
+							game.placeMark(row, col);
+							count++;
+						}
+					}
+				}
+				
+			}
+			return true;
+		}
 
 	}
 	private ServerSocket socket;
-	TicTacToe game;
 	
 	public Server(int portNum) {
-		game = new TicTacToe();
 		try {
 			socket = new ServerSocket(portNum);
 		} catch(IOException e) {
@@ -49,8 +99,17 @@ public class Server {
 			e.printStackTrace();
 		}
 		while (true) {
-			System.out.println("Server waiting for client connection...");
-			
+			try {
+				System.out.println("Server (" + host + ") wating for connection on port: " + port + ".");
+				Socket client = socket.accept();
+				ServWorker worker = new ServWorker(client, this);
+				worker.start();
+				System.out.println("**********New Connection***********");
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
+		
 	}
 }
