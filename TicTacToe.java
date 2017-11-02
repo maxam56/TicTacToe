@@ -7,7 +7,7 @@ public class TicTacToe {
 			
     public TicTacToe() {
         board = new char[3][3];
-        currentPlayerMark = 'x';
+        currentPlayerMark = 'o';
         initializeBoard();
     }
 	
@@ -25,7 +25,17 @@ public class TicTacToe {
         }
     }
 	
-	
+	public String getBoardString()
+	{
+		StringBuilder b = new StringBuilder();
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++)
+			{
+				b.append(board[i][j]);
+			}
+		}
+		return b.toString();
+	}
     // Print the current board (may be replaced by GUI implementation later)
     public void printBoard() {
         System.out.println("-------------");
@@ -118,6 +128,7 @@ public class TicTacToe {
             if ((col >= 0) && (col < 3)) {
                 if (board[row][col] == '-') {
                     board[row][col] = currentPlayerMark;
+                    System.out.println("Marked");
                     return true;
                 }
             }
@@ -126,15 +137,12 @@ public class TicTacToe {
         return false;
     }
     
-    public char getMakr(int row, int col) {
+    public char getMark(int row, int col) {
     	return board[row][col];
     }
     
 	public static void main(String[] args) {
-		TicTacToe game = new TicTacToe();
-		game.printBoard();
-		game.placeMark(0, 0);
-		game.printBoard();
+		Server s = new Server(1234);
 
 	}
 
