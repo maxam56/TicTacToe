@@ -140,10 +140,4 @@ public class TicTacToe {
     public char getMark(int row, int col) {
     	return board[row][col];
     }
-    
-	public static void main(String[] args) {
-		Server s = new Server(1234);
-
-	}
-
 }

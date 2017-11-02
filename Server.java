@@ -124,8 +124,6 @@ public class Server {
 
 	}
 	private ServerSocket socket;
-	private HashSet<ServWorker> workers = new HashSet<>();
-	private boolean exit = false;
 	
 	
 	public Server(int portNum) {
@@ -141,7 +139,6 @@ public class Server {
 	public void closeWorker(ServWorker worker) {
 		worker.setStop();
 		System.out.println("Stopped worker.");
-		exit = true;
 	}
 	
 	private void waitForConnection(int port) {
@@ -170,5 +167,8 @@ public class Server {
 		
 		System.out.println("Server exiting...");
 		
+	}
+	public static void main(String[] args) {
+		Server s = new Server(1234);
 	}
 }
