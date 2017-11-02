@@ -6,6 +6,8 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 public class Server {
 	
@@ -19,10 +21,13 @@ public class Server {
 		final private String LOSS_CODE = "loss";
 		final private String TIE_CODE = "tie";
 		
+		private volatile boolean stop = false;
+		
 		public ServWorker(final Socket client, final Server server) {
 			game = new TicTacToe();
 			this.client = client;
 			this.server = server;
+
 			try {
 				clientWriter = new PrintWriter(this.client.getOutputStream(), true);
 				clientReader = new BufferedReader(new InputStreamReader((this.client.getInputStream())));
@@ -32,37 +37,39 @@ public class Server {
 			}
 		}
 		
+		public void setStop() {
+			stop = true;
+		}
+		
 		public void run() {
 			//Print empty board to prompt clients first move
 			clientWriter.println("---------");
-			while (true) {
+			while (!stop) {
 				try {
 					
 					//Wait for first move from client
-					if (fillBoard(clientReader.readLine())) {
-						//successful line read
-					} else {
+					if (!fillBoard(clientReader.readLine())) {
+						//Bad move from client
 						clientWriter.println("Invalid move submission");
+						clientWriter.println(game.getBoardString());
 						continue;
 					}
 					//Check for win
 					if (game.checkForWin()) {
 						clientWriter.println(WIN_CODE);
 						server.closeWorker(this);
-						return;
 					} else if (game.isBoardFull()) {
 						clientWriter.println(TIE_CODE);
 						server.closeWorker(this);
-						return;
 					} else {
 						game.changePlayer();
 						makeMove();
 						if (game.checkForWin()) {
 							clientWriter.println(LOSS_CODE);
 							server.closeWorker(this);
-							return;
 						}
 					}
+					clientWriter.println(game.getBoardString());
 					game.changePlayer(); //Change back to client mark
 					//Make own move
 					
@@ -70,7 +77,10 @@ public class Server {
 					
 					e.printStackTrace();
 				}
+				
 			}
+			System.out.println("Worker exiting...");
+			return;
 		}
 		
 		private void makeMove() {
@@ -81,6 +91,7 @@ public class Server {
 				col = i%3;
 				if (b.charAt(i) == '-') {
 					game.placeMark(row, col);
+					return;
 				}
 			}
 		}
@@ -97,33 +108,25 @@ public class Server {
 				}
 				row = i/3;
 				col = i%3;
-				if (move.charAt(i) == 'x' || move.charAt(i) == 'o') {
+				//Fill board with opponents moves, client always 'o'
+				if (move.charAt(i) == 'o') {
 					System.out.println("Found mark");
-					game.placeMark(row, col);
-					game.printBoard();
+					if (game.getMark(row, col) == '-' || game.getMark(row, col) == 'o') {
+						game.placeMark(row, col);
+						game.printBoard();
+					} else return false;
+					
 					
 				}
 			}
-			
-			StringBuilder b = new StringBuilder();
-			for (int i = 0; i < 9; i++) {
-				row = i/3;
-				col = i%3;
-				if (col == 2 && row != 2) {
-					b.append(game.getMark(row, col));
-					b.append("|");
-				} else b.append(game.getMark(row, col));
-				
-				
-				
-			}
-			clientWriter.println(b.toString());
-			
 			return true;
 		}
 
 	}
 	private ServerSocket socket;
+	private HashSet<ServWorker> workers = new HashSet<>();
+	private boolean exit = false;
+	
 	
 	public Server(int portNum) {
 		try {
@@ -136,13 +139,9 @@ public class Server {
 	}
 	
 	public void closeWorker(ServWorker worker) {
-		try {
-			worker.join();
-			System.out.println("Successfully terminated worker.");
-		} catch (InterruptedException e) {
-			System.err.println("Failed to join worker thread");
-			e.printStackTrace();
-		}
+		worker.setStop();
+		System.out.println("Stopped worker.");
+		exit = true;
 	}
 	
 	private void waitForConnection(int port) {
@@ -152,18 +151,24 @@ public class Server {
 		} catch(UnknownHostException e) {
 			e.printStackTrace();
 		}
-		while (true) {
+
+		try {
+			System.out.println("Server (" + host + ") wating for connection on port: " + port + ".");
+			Socket client = socket.accept();
+			ServWorker worker = new ServWorker(client, this);
+			worker.start();
 			try {
-				System.out.println("Server (" + host + ") wating for connection on port: " + port + ".");
-				Socket client = socket.accept();
-				ServWorker worker = new ServWorker(client, this);
-				worker.start();
-				System.out.println("**********New Connection***********");
-			} catch (IOException e) {
+				worker.join();
+			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		
+		System.out.println("Server exiting...");
 		
 	}
 }
