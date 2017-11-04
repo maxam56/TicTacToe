@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Random;
 
 
 public class Client {
@@ -11,10 +12,11 @@ public class Client {
 	TicTacToe game;
 	PrintWriter serverWriter;
 	BufferedReader serverReader;
+	private final char MARK = 'x';
 	
 	public Client(String host, int port) {
 		try {
-			game = new TicTacToe();
+			game = new TicTacToe(MARK);
 			socket = new Socket(host, port);
 		} catch(IOException e) {
 			System.err.println("Failed to open " + host + ":" + port);
@@ -32,10 +34,11 @@ public class Client {
 			String move = serverReader.readLine();
 			while (true) {
 				if (first) {
+					Random r = new Random();
+					game.placeMark(game.C_MARK, r.nextInt(3), r.nextInt(3));
 					first = false;
-					game.placeMark(1, 1);
 				} else makeMove();
-				
+				game.printBoard();
 				serverWriter.println(game.getBoardString());
 				move = serverReader.readLine();
 				if (move.equalsIgnoreCase("win") || move.equalsIgnoreCase("loss") || move.equalsIgnoreCase("tie")) {
@@ -44,6 +47,7 @@ public class Client {
 					return;
 				}
 				fillBoard(move);
+				game.printBoard();
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
@@ -60,35 +64,23 @@ public class Client {
 	private boolean fillBoard(String move) {
 		if (move.length() != 9) return false;
 		int row, col;
-		game.changePlayer();
 		//Update board with client move
 		for (int i = 0; i < move.length(); i++) {
 			row = i/3;
 			col = i%3;
 			//Fill board with opponents moves, server always 'x'
-			if (move.charAt(i) == 'x') {
-				System.out.println("Found mark");
-				if (game.getMark(row, col) == '-' || game.getMark(row, col) == 'x') {
-					game.placeMark(row, col);
-					game.printBoard();
-				} else return false;
+			if (move.charAt(i) == game.S_MARK) {
+				if (game.getMark(row, col) == '-') {
+					game.placeMark(game.S_MARK, row, col);
+				}
 			}
 		}
-		game.changePlayer();
 		return true;
 	}
 	
 	private void makeMove() {
-		String b = game.getBoardString();
-		int row, col;
-		for (int i = 0; i < b.length(); i++) {
-			row = i/3;
-			col = i%3;
-			if (b.charAt(i) == '-') {
-				game.placeMark(row, col);
-				return;
-			}
-		}
+		int[] move = game.makeMove();
+		game.placeMark(game.C_MARK, move[0], move[1]);
 	}
 	
 	public static void main(String[] args) {

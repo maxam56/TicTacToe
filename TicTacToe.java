@@ -2,12 +2,17 @@
 public class TicTacToe {
 
 
-    private char[][] board; 
-    private char currentPlayerMark;
+    private char[][] board;
+    public final char S_MARK = 'o';
+    public final char C_MARK = 'x';
+    private final char MY_MARK;
+    private final char OTHER_MARK;
 			
-    public TicTacToe() {
+    public TicTacToe(char mark) {
         board = new char[3][3];
-        currentPlayerMark = 'o';
+        MY_MARK = mark;
+        if (mark == S_MARK) OTHER_MARK = C_MARK;
+        else OTHER_MARK = S_MARK;
         initializeBoard();
     }
 	
@@ -50,10 +55,12 @@ public class TicTacToe {
         }
     }
 	
-	
+	public boolean isBoardFull() {
+		return isBoardFull(board);
+	}
     // Loop through all cells of the board and if one is found to be empty (contains char '-') then return false.
     // Otherwise the board is full.
-    public boolean isBoardFull() {
+    public boolean isBoardFull(char[][] board) {
         boolean isFull = true;
 		
         for (int i = 0; i < 3; i++) {
@@ -67,68 +74,150 @@ public class TicTacToe {
         return isFull;
     }
 	
+	public char checkForWin() {
+		return checkForWin(board);
+	}
+	
+	public int[] makeMove() {
+		int best, result;
+		int[] move = {0, 0};
+		best = -2;
+		for (int row = 0; row < 3; row++) {
+			for (int col = 0; col < 3; col++) {
+				if (board[row][col] == '-') {
+					board[row][col] = MY_MARK;
+					result = min(board);
+					if (result > best) {
+						best = result;
+						move[0] = row;
+						move[1] = col;
+					}
+					board[row][col] = '-';
+				}
+			}
+		}
+		return move;
+		
+	}
+	
+	private int min (char[][] board) {
+		int bestResult, result;
+		char winner = checkForWin(board);
+		bestResult = 2;
+		if (winner == MY_MARK) {
+			return 1;
+		} else if (winner == OTHER_MARK) {
+			return -1;
+		} else if (isBoardFull(board)) {
+			return 0;
+		}
+		for (int r = 0; r < 3; r++) {
+			for (int c = 0; c < 3; c++) {
+				if (board[r][c] == '-') {
+					board[r][c] = OTHER_MARK;
+					result = max(board);
+					if (result < bestResult) {
+						bestResult = result;
+					}
+					board[r][c] = '-';
+				}
+			}
+		}
+		return bestResult;
+	}
+	
+	private int max (char[][] board) {
+		
+		int bestResult, result;
+		char winner = checkForWin(board);
+		bestResult = -2;
+		//Did we win
+		if (winner == MY_MARK) {
+			return 1;
+		} else if (winner == OTHER_MARK) {
+			return -1;
+		} else if (isBoardFull(board)) {
+			return 0;
+		}
+
+		for (int r = 0; r < 3; r++) {
+			for (int c = 0; c < 3; c++) {
+				if (board[r][c] == '-') {
+					board[r][c] = MY_MARK;
+					result = min(board);
+					if (result > bestResult) {
+						bestResult = result;
+					}
+					board[r][c] = '-';
+				}
+			}
+		}
+		return bestResult;
+	}
 	
     // Returns true if there is a win, false otherwise.
     // This calls our other win check functions to check the entire board.
-    public boolean checkForWin() {
-        return (checkRowsForWin() || checkColumnsForWin() || checkDiagonalsForWin());
+    public char checkForWin(char[][] board) {
+    	char w1, w2, w3;
+    	w1 = checkRowsForWin(board);
+    	w2 = checkColumnsForWin(board);
+    	w3 = checkDiagonalsForWin(board);
+    	if (w1 != 'n') return w1;
+    	else if (w2 != 'n') return w2;
+    	else if (w3 != 'n') return w3;
+    	else return 'n';
     }
 	
 	
     // Loop through rows and see if any are winners.
-    private boolean checkRowsForWin() {
+    private char checkRowsForWin(char[][] board) {
         for (int i = 0; i < 3; i++) {
-            if (checkRowCol(board[i][0], board[i][1], board[i][2]) == true) {
-                return true;
+            if (checkRowCol(board[i][0], board[i][1], board[i][2]) != 'n') {
+                return board[i][0];
             }
         }
-        return false;
+        return 'n';
     }
 	
 	
     // Loop through columns and see if any are winners.
-    private boolean checkColumnsForWin() {
+    private char checkColumnsForWin(char[][] board) {
         for (int i = 0; i < 3; i++) {
-            if (checkRowCol(board[0][i], board[1][i], board[2][i]) == true) {
-                return true;
+            if (checkRowCol(board[0][i], board[1][i], board[2][i]) != 'n') {
+                return board[0][i];
             }
         }
-        return false;
+        return 'n';
     }
 	
 	
     // Check the two diagonals to see if either is a win. Return true if either wins.
-    private boolean checkDiagonalsForWin() {
-        return ((checkRowCol(board[0][0], board[1][1], board[2][2]) == true) || (checkRowCol(board[0][2], board[1][1], board[2][0]) == true));
+    private char checkDiagonalsForWin(char[][] board) {
+    	char d1, d2;
+    	d1 = checkRowCol(board[0][0], board[1][1], board[2][2]);
+    	d2 = checkRowCol(board[0][2], board[1][1], board[2][0]);
+        if (d1 != 'n') return d1;
+        if (d2 != 'n') return d2;
+        return 'n';
     }
 	
 	
     // Check to see if all three values are the same (and not empty) indicating a win.
-    private boolean checkRowCol(char c1, char c2, char c3) {
-        return ((c1 != '-') && (c1 == c2) && (c2 == c3));
-    }
-	
-	
-    // Change player marks back and forth.
-    public void changePlayer() {
-        if (currentPlayerMark == 'x') {
-            currentPlayerMark = 'o';
+    private char checkRowCol(char c1, char c2, char c3) {
+        if (((c1 != '-') && (c1 == c2) && (c2 == c3))) {
+        	return c1;
         }
-        else {
-            currentPlayerMark = 'x';
-        }
+        return 'n';
     }
-	
 	
     // Places a mark at the cell specified by row and col with the mark of the current player.
-    public boolean placeMark(int row, int col) {
+    public boolean placeMark(char p, int row, int col) {
 		
         // Make sure that row and column are in bounds of the board.
         if ((row >= 0) && (row < 3)) {
             if ((col >= 0) && (col < 3)) {
                 if (board[row][col] == '-') {
-                    board[row][col] = currentPlayerMark;
-                    System.out.println("Marked");
+                    board[row][col] = p;
                     return true;
                 }
             }

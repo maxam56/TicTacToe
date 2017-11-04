@@ -20,11 +20,13 @@ public class Server {
 		final private String WIN_CODE = "win";
 		final private String LOSS_CODE = "loss";
 		final private String TIE_CODE = "tie";
+		private final char MARK = 'o';
+		
 		
 		private volatile boolean stop = false;
 		
 		public ServWorker(final Socket client, final Server server) {
-			game = new TicTacToe();
+			game = new TicTacToe(MARK);
 			this.client = client;
 			this.server = server;
 
@@ -44,6 +46,7 @@ public class Server {
 		public void run() {
 			//Print empty board to prompt clients first move
 			clientWriter.println("---------");
+			char winner;
 			while (!stop) {
 				try {
 					
@@ -54,24 +57,29 @@ public class Server {
 						clientWriter.println(game.getBoardString());
 						continue;
 					}
-					//Check for win
-					if (game.checkForWin()) {
+					game.printBoard();
+					winner = game.checkForWin();
+					//Check for client win or draw
+					if (winner == game.C_MARK) {
 						clientWriter.println(WIN_CODE);
 						server.closeWorker(this);
+						continue;
 					} else if (game.isBoardFull()) {
 						clientWriter.println(TIE_CODE);
 						server.closeWorker(this);
-					} else {
-						game.changePlayer();
-						makeMove();
-						if (game.checkForWin()) {
-							clientWriter.println(LOSS_CODE);
-							server.closeWorker(this);
-						}
+						continue;
+						
+					}
+					//Make own move
+					makeMove();
+					game.printBoard();
+					if (game.checkForWin() == game.S_MARK) {
+						clientWriter.println(LOSS_CODE);
+						server.closeWorker(this);
+						continue;
 					}
 					clientWriter.println(game.getBoardString());
-					game.changePlayer(); //Change back to client mark
-					//Make own move
+					
 					
 				} catch (IOException e) {
 					
@@ -84,16 +92,9 @@ public class Server {
 		}
 		
 		private void makeMove() {
-			String b = game.getBoardString();
-			int row, col;
-			for (int i = 0; i < b.length(); i++) {
-				row = i/3;
-				col = i%3;
-				if (b.charAt(i) == '-') {
-					game.placeMark(row, col);
-					return;
-				}
-			}
+			int[] move = game.makeMove();
+			game.placeMark(game.S_MARK, move[0], move[1]);
+			
 		}
 		
 		private boolean fillBoard(String move) {
@@ -109,22 +110,19 @@ public class Server {
 				row = i/3;
 				col = i%3;
 				//Fill board with opponents moves, client always 'o'
-				if (move.charAt(i) == 'o') {
-					System.out.println("Found mark");
-					if (game.getMark(row, col) == '-' || game.getMark(row, col) == 'o') {
-						game.placeMark(row, col);
-						game.printBoard();
-					} else return false;
+				if (move.charAt(i) == game.C_MARK) {
+					if (game.getMark(row, col) == '-') {
+						game.placeMark(game.C_MARK, row, col);
+					} 
 					
 					
 				}
 			}
 			return true;
 		}
-
 	}
-	private ServerSocket socket;
 	
+	private ServerSocket socket;
 	
 	public Server(int portNum) {
 		try {
@@ -152,6 +150,7 @@ public class Server {
 		try {
 			System.out.println("Server (" + host + ") wating for connection on port: " + port + ".");
 			Socket client = socket.accept();
+			System.out.println("Connection established!");
 			ServWorker worker = new ServWorker(client, this);
 			worker.start();
 			try {
