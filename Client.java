@@ -64,26 +64,25 @@ public class Client {
 	private boolean fillBoard(String move) {
 		if (move.length() < 9) return false;
 		System.out.println(move);
-		int row, col, j, idx;
-		j = idx = 0;
+		int row, col, bIdx;
+		bIdx = 0;
 		//Update board with client move
-		while (j < 9)
+		for (int i = 0; i < move.length(); i++)
 		{
-			if (move.charAt(idx) != '-' || move.charAt(idx) != game.S_MARK || move.charAt(idx) != game.C_MARK) {
-				idx++;
+			if (move.charAt(i) != '-' || move.charAt(i) != game.S_MARK || move.charAt(i) != game.C_MARK) {
 				continue;
 			}
-			row = j/3;
-			col = j%3;
+			row = bIdx/3;
+			col = bIdx%3;
 			//Fill board with opponents moves, server always 'x'
-			if (move.charAt(idx) == game.S_MARK) {
+			if (move.charAt(i) == game.S_MARK) {
 				if (game.getMark(row, col) == '-') {
 					game.placeMark(game.S_MARK, row, col);
 					System.out.println("Marked at " + row + " " + col);
 				}
 			}
-			idx++;
-			j++;
+			bIdx++;
+
 		}
 		return true;
 	}
