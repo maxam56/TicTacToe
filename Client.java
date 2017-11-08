@@ -82,6 +82,7 @@ public class Client {
 					System.out.println("Marked at " + row + " " + col);
 				}
 			}
+			idx++;
 			j++;
 		}
 		return true;
