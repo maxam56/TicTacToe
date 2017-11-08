@@ -73,6 +73,7 @@ public class Client {
 			if (move.charAt(i) == game.S_MARK) {
 				if (game.getMark(row, col) == '-') {
 					game.placeMark(game.S_MARK, row, col);
+					System.out.println("Marked at " + row + " " + col);
 				}
 			}
 		}
