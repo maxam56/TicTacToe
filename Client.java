@@ -72,6 +72,7 @@ public class Client {
 			if (move.charAt(i) != '-' || move.charAt(i) != game.S_MARK || move.charAt(i) != game.C_MARK) {
 				continue;
 			}
+			System.out.println("Found mark");
 			row = bIdx/3;
 			col = bIdx%3;
 			//Fill board with opponents moves, server always 'x'
