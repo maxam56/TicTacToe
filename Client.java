@@ -63,6 +63,7 @@ public class Client {
 	
 	private boolean fillBoard(String move) {
 		if (move.length() < 9) return false;
+		System.out.println(move);
 		int row, col;
 		//Update board with client move
 		for (int i = 0; i < 9; i++) {
