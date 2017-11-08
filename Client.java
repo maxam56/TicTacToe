@@ -69,7 +69,7 @@ public class Client {
 		//Update board with client move
 		for (int i = 0; i < move.length(); i++)
 		{
-			if (move.charAt(i) != '-' || move.charAt(i) != game.S_MARK || move.charAt(i) != game.C_MARK) {
+			if (move.charAt(i) != '-' && move.charAt(i) != game.S_MARK && move.charAt(i) != game.C_MARK) {
 				continue;
 			}
 			System.out.println("Found mark");
