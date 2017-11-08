@@ -48,11 +48,6 @@ public class Client {
 				}
 				fillBoard(move);
 				game.printBoard();
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
 			}
 		} catch(IOException e) {
 			System.err.println("Server worker: Could no open client output/output stream.");
