@@ -62,10 +62,10 @@ public class Client {
 	}
 	
 	private boolean fillBoard(String move) {
-		if (move.length() != 9) return false;
+		if (move.length() < 9) return false;
 		int row, col;
 		//Update board with client move
-		for (int i = 0; i < move.length(); i++) {
+		for (int i = 0; i < 9; i++) {
 			row = i/3;
 			col = i%3;
 			//Fill board with opponents moves, server always 'x'
