@@ -67,6 +67,10 @@ public class Client {
 		int row, col;
 		//Update board with client move
 		for (int i = 0; i < 9; i++) {
+			if (move.charAt(i) != '-' || move.charAt(i) != game.S_MARK || move.charAt(i) != game.C_MARK) {
+				i = 0;
+				continue;
+			}
 			row = i/3;
 			col = i%3;
 			//Fill board with opponents moves, server always 'x'
