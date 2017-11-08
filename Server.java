@@ -98,28 +98,29 @@ public class Server {
 		}
 		
 		private boolean fillBoard(String move) {
-			if (move.length() != 9) return false;
-			int row, col;
-			int count = 0;
+			if (move.length() < 9) return false;
+			System.out.println(move);
+			int row, col, bIdx;
+			bIdx = 0;
 			//Update board with client move
-			for (int i = 0; i < move.length(); i++) {
-				if (count > 1) {
-					clientWriter.println("Too many moves!");
-					return false;
+			for (int i = 0; i < move.length(); i++)
+			{
+				if (move.charAt(i) != '-' && move.charAt(i) != game.S_MARK && move.charAt(i) != game.C_MARK) {
+					continue;
 				}
-				row = i/3;
-				col = i%3;
-				//Fill board with opponents moves, client always 'o'
+				row = bIdx/3;
+				col = bIdx%3;
+				//Fill board with opponents moves, server always 'x'
 				if (move.charAt(i) == game.C_MARK) {
 					if (game.getMark(row, col) == '-') {
 						game.placeMark(game.C_MARK, row, col);
-					} 
-					
-					
+						System.out.println("Marked at " + row + " " + col);
+					}
 				}
+				bIdx++;
+
 			}
 			return true;
-		}
 	}
 	
 	private ServerSocket socket;
